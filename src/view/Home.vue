@@ -1,12 +1,5 @@
 <template>
   <div class="homebg">
-    <div class="Coverlayer" @click='coverShowClick' v-show='coverShow'>
-    </div>
-    <div class="msgEmitBox" :class="{msgEmitBoxTop:topTrue}" v-show='true'>
-      <i class='iconfont icon-close' @click='coverShowClick'></i>
-      <textarea name="inputArea" id='textareaBox' v-model='textvalue' placeholder='输入文字描述事件'></textarea>
-      <span @click='emitMes' :class="{'btncolor':colorTrue}">发送</span>
-    </div>
 
       <section class='home' v-show='startShow'>
         <img src="../img/xiaohai.png" alt="" />
@@ -20,125 +13,38 @@
 
       <section class='chatroom' v-show='chatShow'>
         <header class='header'>
-          <i @click='goBack'>&lt;</i>
+          <i @click='goBack' class='iconfont icon-fanhui'></i>
           <span>小嗨智能法律机器人</span>
         </header>
         <div id="scroll">
 
           <div class="child">
-            <section class="chatright">
-                <img src="../img/xiaohai.png">
+
+            <section :class="[item.msg_type==1?'chatleft':'chatright']" v-for='item in chatList'>
+                <img :src="item.user_head">
                 <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
+                    <span>{{item.user_name}}</span>
+                    <p class="chatcon"><span>{{item.content}}</span></p>
                 </div>
             </section>
 
-            <section class="chatleft">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatright">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatleft">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatright">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatleft">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatright">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatleft">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatright">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatleft">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatright">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
-
-            <section class="chatleft">
-                <img src="../img/xiaohai.png">
-                <div class="chatwith">
-                    <span>王蓝宝石</span>
-                    <p class="chatcon"><span>你好，请问你想咨询什么</span></p>
-                </div>
-            </section>
           </div>
 
         </div>
-        <div class="btm">
 
-          <input type="text" @focus='focus' @blur='blur' class='text'
-          style='height:.88rem;border:1px solid red;width:80%'>
-        </div>
-        <!-- <article id='clickdiv' class="article" @click="openKeyboard">
-          <div>
+        <article id='clickdiv' class="article" @click="openKeyboard">
+          <div class="">
+            <input type="text" @focus='focus' @blur='blur' class='text'
+               v-model='textvalue'>
           </div>
-          <span>发送</span>
-      </article> -->
+          <span :class="{'btncolor':colorTrue}" @click='emitMes'>发送</span>
+        </article>
       </section>
 
   </div>
 </template>
 <script>
+  import { Toast } from 'mint-ui';
   export default{
     data(){
       return{
@@ -147,18 +53,28 @@
         startShow:false,
         coverShow:false,
         textvalue:'',
-        windowHeight:'',
         colorTrue:false,
         topTrue:false,
-        bfscrolltop:'',
-        sougou:false,
-        timer:null
+        timer:null,
+        chatList:[
+          {
+            msg_type:1,
+            content:'请问你想咨询什么',
+            user_head:"http://192.168.1.38:3000/public/images/smart_robert.jpg",
+            user_name:'小嗨智能律师'
+          },{
+            msg_type:2,
+            content:'律师，您好',
+            user_head:"http://192.168.1.38:3000/public/images/smart_robert.jpg",
+            user_name:'王大锤'
+          }
+        ]  //聊天信息列表
       }
     },
     watch:{
       textvalue(res){
         var len=res.length;
-        if(len!=0){
+        if(len!=0&&res[0]!=' '){
           this.colorTrue=true;
         }else{
           this.colorTrue=false
@@ -166,8 +82,6 @@
       }
     },
     mounted(){
-      this.windowHeight=document.body.scrollHeight;
-      this.bfscrolltop = document.body.scrollTop;
       var HomeScroll = this.Scroll;
 			this.Ios.isIos.isMobile(this);
 			this.HomeSC = new HomeScroll('#scroll', {
@@ -184,44 +98,56 @@
           text.blur()
         }
       });
-      setTimeout(()=>{
-
-        // alert(document.body.clientHeight)   //浏览器高 603
-        // alert(document.body.offsetHeight)   //浏览器高 603
-        // alert(document.body.scrollHeight)   //正文高   603
-        // alert( document.body.scrollTop )    //0
-        // alert( window.screen.availHeight )   //可用工作区高度  667
-
-      },200);
-      var Height=window.innerHeight;
-      window.onresize=function(){
-        document.querySelector('#scroll').style.height=window.innerHeight+'px'
-        if(Height==window.innerHeight){
-          // alert(window.innerHeight)
-        }
-      }
+      this.changeWindow()
     },
     methods:{
       focus(){
-        var bfscrolltop = document.body.scrollTop;
-        var text=document.querySelector('.btm');
-        // text.style.opacity='0'
-        // text.scrollIntoView(true)
-        // alert(document.body.scrollHeight )
-        this.timer=setInterval(()=>{
-          document.body.scrollTop=document.body.scrollHeight;
-        },100);
-        setTimeout(()=>{
-          // text.style.opacity='1'
-        },200)
+          // text.scrollIntoView(true)
+        if(this.isIos){
+          this.timer=setInterval(()=>{  //兼容ios
+            document.body.scrollTop=document.body.scrollHeight;
+          },100);
+        }
 
       },
       blur(){
-        var text=document.querySelector('.btm');
-        text.style.bottom=0;
         clearInterval(this.timer)
       },
-      emitMes(){
+      changeWindow(){   //兼容安卓
+        var h = document.documentElement.clientHeight;
+        var that = this;
+        window.onresize = function () {
+          if (window.innerHeight != h) {  //先执行
+            that.HomeSC.scrollTo(0, -200000);
+          }
+        }
+      },
+      emitMes(){  //发送
+        if(this.textvalue[0]==' '){
+          Toast('抱歉，第一个字符不能为空')
+        }
+        if(this.textvalue.length==0 || this.textvalue[0]==' '){
+          return;
+        }
+        var text=document.querySelector('.text');
+        var msg={
+
+        }
+        this.chatList.push({
+          msg_type:2,
+          content:this.textvalue,
+          user_head:"http://192.168.1.38:3000/public/images/smart_robert.jpg",
+          user_name:'王大锤'
+        });
+        this.textvalue='';
+        text.focus();
+        this.HomeSC.scrollTo(0, -200000);
+        setTimeout(() => {
+            this.HomeSC.refresh()
+          }, 0);
+        // that.getMsg(msg);
+      },
+      getMsg(msg){
 
       },
       start(){
@@ -232,17 +158,8 @@
         this.startShow=true;
         this.chatShow=false;
       },
-      coverShowClick(){
-        this.coverShow=false;
-        this.topTrue=false;
-      },
       openKeyboard(){
-        var text=document.querySelector('.text');
-        // text.focus()
-        // this.HomeSC.scrollTo(0, -200000);
-        // this.coverShow = true;
-        // this.topTrue=true;
-        // document.getElementById('textareaBox').focus();
+
       }
     }
   }
@@ -256,115 +173,32 @@
   left:0;right:0;
   top:0;bottom:0
 }
-#scroll1{
-  position: absolute;
-   left: 0;
-   right: 0;
-   bottom: 0;
-   top:0;
-   height:100vh;
-   overflow: scroll;
-}
-#scroll{
-  /*bottom:44px!important;*/
-}
+
 .text{
   box-sizing: border-box;
-}
-.btm{
-  position:absolute;
-  bottom:0;
-  left:0;right:0;
-  background: red;
-  z-index: 99;
+  width:100%;
+  height:.72rem;
+  font-size: .32rem;
+  z-index: 999
 }
 .child{
+  padding-top:.2rem;
   padding-bottom:1rem
 }
-.msgEmitBox{
-  height:4rem;
-  z-index: 1000;
-  width:96%;
-  position:fixed;
-  left:2%;
-  top:-4.5rem;
-  background:#fff;
-  border-radius: 5px;
-  box-sizing: border-box;
-  padding:.3rem .32rem .32rem .2rem;
-  textarea {
-    resize: none;
-    background: $backgroundw;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-top-right-radius:0;
-    border-bottom-right-radius:0;
-    border: 0;
-    border-radius:5px;
-    box-sizing: border-box;
-    border-bottom:1px solid #eee;
-    width: 100%;
-    height: 2.5rem;
-    line-height: 16px;
-    font-size: .3rem;
-  }
-  i{
-    position:absolute;
-    right:.1rem;top:.1rem;
-    font-size:.5rem;
-  }
-  span {
-    box-sizing: border-box;
-    font-size: .3rem;
-    line-height: .7rem;
-    height: .7rem;
-    color: #ffffff;
-    width: 20%;
-    background:#bcc1cc;
-    border-radius: 4px;
-    text-align: center;
-    float:right;
-    margin-top:.2rem;
-  }
-  .btncolor {
-    background: #27aff5;
-    color:#fff;
-  }
-}
-.msgEmitBoxTop{
-  top:.5rem
-}
+
 .article {
       @extend %flexbox;
       @extend %flex-ali-ce;
-     /* @extend %flex-ju-ce;*/
       z-index: 99;
-      position: fixed;
+      position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-     /* width:7.1rem;*/
-      height: 46px;
-      padding: 0 .2rem .2rem;
+      height: 1rem;
+      padding: .2rem .2rem .2rem;
       box-sizing: border-box;
       margin-bottom: 0 !important;
       background: #f1f1f1;
-      textarea {
-          resize: none;
-          background: $backgroundw;
-          border-top-left-radius: 4px;
-          border-bottom-left-radius: 4px;
-          border-top-right-radius:0;
-          border-bottom-right-radius:0;
-          border: 0;
-          box-sizing: border-box;
-          width: 83%;
-          height: 36px;
-          line-height: 16px;
-          text-indent: .2rem;
-          font-size: .3rem;
-          padding: 10px 0;
-      }
       div{
         background:#fff;
         width:83%;
@@ -379,15 +213,18 @@
       span {
           box-sizing: border-box;
           font-size: .3rem;
-          line-height: 36px;
-          height: 36px;
-          /*margin-right: .1rem;*/
+          line-height: .72rem;
+          height: .72rem;
           background: #DDDDDD;
           color: #ffffff;
           width: 17%;
           border-top-right-radius: 4px;
           border-bottom-right-radius: 4px;
           text-align: center;
+      }
+      .btncolor {
+        background: #27aff5;
+        color:#fff;
       }
   }
 .home{
@@ -432,9 +269,9 @@
   box-sizing: border-box;
   border-bottom:1px solid #eee;
   i{
-    float:left;
-    margin-left:.2rem;
-    font-weight:bold;
+    position:absolute;
+    left:.2rem;
+    /*font-weight:bold;*/
     font-size:.4rem;
   }
 }
