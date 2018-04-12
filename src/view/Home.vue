@@ -171,7 +171,10 @@
 .homebg{
   position:absolute;
   left:0;right:0;
-  top:0;bottom:0
+  top:0;bottom:0;
+  max-width: 600px;
+  margin:0 auto;
+  border:1px solid #eee;
 }
 
 .text{
