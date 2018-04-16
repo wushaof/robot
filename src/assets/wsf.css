@@ -1,6 +1,4 @@
-#home,#obic,#selectexpertbox,#chatroomBox,#expertbox,#sortdebox,
-#goodatBox,#selectquick,#chatroomBox2,#oldChatroomBox,
-#analysisBox,#scroll{
+#chat,#scroll{
   position: absolute;
   z-index: 1;
   top: 44px;

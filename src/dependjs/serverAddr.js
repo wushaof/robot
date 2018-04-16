@@ -7,7 +7,7 @@
 })();*/
 
 let cons = {
-  http:"http://192.168.1.38:3000",
+  http:"http://192.168.1.41:3000",
   socket:"http://192.168.1.38:4000/legal/",
   wxmpServer:"http://test.pay.fali-inc.com"
 
