@@ -150,9 +150,6 @@
 @import '../assets/znsc';
 #chat{
   top:0!important;
-  max-width: 600px;
-  margin:0 auto;
-  border:1px solid #eee;
 }
 
 .text{
@@ -242,7 +239,7 @@
   }
 }
 .header{
-  color:#28AFF5;
+  color:$base;
   text-align: center;
   height:.88rem;
   line-height: .88rem;
@@ -252,7 +249,6 @@
   i{
     position:absolute;
     left:.2rem;
-    /*font-weight:bold;*/
     font-size:.4rem;
   }
 }
