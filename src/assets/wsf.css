@@ -1,7 +1,7 @@
-#chat,#scroll{
+#chat,#scroll,#companySc,#homeScroll{
   position: absolute;
   z-index: 1;
-  top: 44px;
+  top: .88rem;
   bottom: 0;
   left: 0;
   width: 100%;

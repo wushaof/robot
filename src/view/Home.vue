@@ -1,38 +1,42 @@
 <template>
-  <section id='home'>
-    <header class='header'>
-      <i @click='goBack' class='iconfont icon-fanhui'></i>
-      <span>小嗨智能法律机器人</span>
-    </header>
-    <img class='titImg' src="../img/xiaohai.png" alt="">
-    <section class='startdiv'>
-      <span class='span1'>法里智能法律引擎支持</span>
-      <p class='p1'>全国160家律所 数千律师实时在线</p>
-      <span>随时随地 即时回复</span>
-      <div class="div" @click='start'>
-        开始咨询
-      </div>
-    </section>
+  <section id='home' :style='{backgroundImage:"url("+msgData.index_back_img+")"}'>
+    <div id="homeScroll">
+      <div class="child">
+        <img class='titImg' :src="msgData.head_img" alt="">
+        <section class='startdiv' :style='{background:"url("+msgData.welc_img+")"}'>
+          <p class='p1' v-html='msgData.welc_word'></p>
+          <div class="div" @click='start'>
+            开始咨询
+          </div>
+          <!-- <p class='p2'>Powered by Fali.ai</p> -->
+        </section>
 
-    <div class="service">
-      <div class="list" @click='serviceGo'>
-        <i class='iconfont icon-svg08'></i>
-        <span>已服务<em>1531</em>名用户</span>
-      </div>
-      <div class="list" @click='serviceGo'>
-        <i class='iconfont icon-svg08'></i>
-        <span><em>4513</em>次专业服务</span>
+        <div class="service">
+          <div class="list" @click='serviceGo'>
+            <img class='img1' src="../img/user.png" alt="">
+            <span>已服务<em>{{msgData.userCount}}</em>名用户</span>
+          </div>
+          <div class="list list2" @click='serviceGo'>
+            <img class='img2' src="../img/reply.png" alt="">
+            <span class='span'><em>{{msgData.replyCount}}</em>次专业解答</span>
+          </div>
+        </div>
+
+        <nav id='home-nav'>
+          <section id='home-nav-scroll' ref='homeNavScroll'>
+            <div class="" v-for='(item,index) in companytype' @click='goDetail(item,index)'>
+              <img :src="item.sku_img" alt="">
+              <span>{{item.name}}</span>
+            </div>
+          </section>
+        </nav>
+
+        <article class='btmtext xfooter'>
+          <span>法里AI大脑提供技术支持</span>
+          <p>Copyright 2016-2018 法里科技 allrights reserved</p>
+        </article>
       </div>
     </div>
-
-    <nav id='home-nav'>
-      <section id='home-nav-scroll' ref='homeNavScroll'>
-        <div class="" v-for='item in companytype'>
-          <img :src="item.img" alt="">
-          <span>{{item.text}}</span>
-        </div>
-      </section>
-    </nav>
   </section>
 </template>
 
@@ -41,43 +45,47 @@ export default {
   data(){
     return{
       homeNavSC:null,
-      companytype:[
-        {img:require('../img/xiaohai.png'),text:'关于迎合'},
-        {img:require('../img/xiaohai.png'),text:'关于迎合'},
-        {img:require('../img/xiaohai.png'),text:'关于迎合'},
-
-      ]
+      companytype:[],
+      msgData:{}
     }
   },
   mounted(){
-    console.log(this.$refs.homeNavScroll.style.width='15rem');
     var homeNavScroll=this.Scroll;
-    this.homeNavSC=new homeNavScroll('#home-nav',{
-        mouseWheel: false, click: this.isAndroid,tap:this.isIos,
-    		scrollX: true,
-    		scrollY: false,
-        disableMouse: true,
-        disablePointer: true
-      });
-      setTimeout(()=>{
-        this.homeNavSC.refresh()
-      },0)
+    this.Ios.isIos.isMobile(this);
+    // this.homeNavSC=new homeNavScroll('#home-nav',{
+    //   mouseWheel: false, click: this.isAndroid,tap:this.isIos,
+  	// 	scrollX: true,
+  	// 	scrollY: false,
+    //   disableMouse: true,
+    //   disablePointer: true
+    // });
     this.checkOpenid();
   },
+  watch:{
+    $route(to){
+      var path=to.path.split('/')[1];
+      if(path == 'home'){
+        document.title='首页';
+      };
+    }
+  },
   methods:{
+    t_click(){
+      alert(8)
+    },
+    goDetail(item,index){
+      this.$router.push({path:`/companyde/${index}`})
+    },
     serviceGo(){
 
     },
     goBack(){
 
     },
-    getData(query,compid){
-      var compid_=sessionStorage.getItem('compid');
+    getData(query){
       var that = this;
-      var _compid=compid || compid_;
       var data={
-        openid:query,
-        compid:_compid
+        code:query
       };
       this.ajax({
           url: `${this.api}/company/wxmp/login`,
@@ -86,10 +94,8 @@ export default {
           dataType: "json",
           success: function (res) {
               if (res.code == 0) {
-                if(compid_!=null && compid_!='undefined'){
-                  sessionStorage.remove('compid')
-                };
-                that.getCompany()
+                localStorage.setItem('uid_company',res.msg.id);
+                that.getDetail(res.msg.id)
               }
           },
           fail: function (status) {
@@ -97,12 +103,12 @@ export default {
           }
       });
     },
-    getCompany(){
+    getDetail(uid){  //公司详情
       var that=this;
       var data={
-        // uid:,
-        // compid:
-      }
+        uid:uid,
+        compid:localStorage.getItem('compid_')
+      };
       this.ajax({
           url: `${this.api}/company/wxmp/compmain`,
           type: "POST",
@@ -110,7 +116,13 @@ export default {
           dataType: "json",
           success: function (res) {
               if (res.code == 0) {
-
+                that.companytype=res.msg.options;
+                that.$refs.homeNavScroll.style.width=(3.1*that.companytype.length)+'rem';
+                that.msgData=res.msg;
+                sessionStorage.setItem('companydetail',JSON.stringify(res.msg.options));
+                // setTimeout(()=>{
+                //   that.homeNavSC.refresh()
+                // },0)
               }
           },
           fail: function (status) {
@@ -119,26 +131,37 @@ export default {
       });
     },
     checkOpenid(){
-      var qid=location.href.split('qid=')[1];
-      if(qid && qid.search('#')!=-1){
-        qid=qid.split('#')[0]
-      }
-      var openid=localStorage.getItem('openid') || 'oSZ8cw6V8pkU4pwAl8WJoTKgi4G8';
-      // var openid=localStorage.getItem('openid');
-      if(openid!=null && openid!='undefined'){
-        this.getData(openid,qid);
+      //本地调试
+      localStorage.setItem('uid_company',33940);
+      var uid_company=33940;
+      var compid='d4fc67adab134d9fab73cd285a4bf039';
+      localStorage.setItem('compid_',compid);
+
+
+
+      //发布环境
+      // var uid_company=localStorage.getItem('uid_company');
+      // var compid=location.href.split('compid=')[1];
+      // if(compid && compid.search('#')!=-1){
+      //   compid=compid.split('#')[0]
+      //   localStorage.setItem('compid_',compid);
+      // }
+
+
+
+      if(uid_company!=null && uid_company!='undefined'){  //已授权获取用户信息
+        this.getDetail(uid_company)
         return;
-      }
+      };
       var query=location.href;
-      var arr=query.split('openid=');
-      if(arr.length>1){
+      var arr=query.split('code=');
+      if(arr && arr.length>1){    //去获code
         query=arr[1];
-        query=query.split('#')[0];
-        localStorage.setItem('openid',query);
-        this.getData(query,null);
+        query=query.split('&')[0];
+        this.getData(query);
         return;
       }
-      this.getOpenid(qid);
+      this.getOpenid(compid);   //获取openid
     },
     getOpenid(compid){
         var that = this;
@@ -148,7 +171,7 @@ export default {
             dataType: "json",
             success: function (res) {
                 if (res.code == 0) {
-                  sessionStorage.setItem('compid',compid);
+                  localStorage.setItem('compid_',compid);
                   window.location.href=res.msg;
                 }
             },
@@ -171,6 +194,15 @@ export default {
   position:absolute;
   height:100vh;
   width:100%;
+  background-size: 100% 95%;
+  background-repeat:no-repeat;
+  background-position: 0 44px;
+  #homeScroll{
+    top: 0;
+    .child{
+      padding:0;
+    }
+  }
   .titImg{
     height: 2rem;
     width: 100%;
@@ -179,44 +211,104 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-around;
+    margin-top: .3rem;
     em{
-      color: $base;
+      color: #ff0000;
     }
     .list{
       display: flex;
       flex-direction: column;
+      align-items: center;
+      span{
+        margin-top: .1rem;
+        color: #333333;
+        font-size: .24rem;
+      }
+      img{
+        height: .68rem;width: .67rem;
+      }
     }
   }
   .startdiv{
-    width: 96%;
-    margin:0 2%;
-    background: url('../img/xiaohai.png');
+    width: 92%;
+    position: relative;
+    top: -.2rem;
+    margin:0 4%;
     background-size: 100% 100%;
+    padding:.4rem 0 .4rem;
+    border-radius: 5px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 3px 8px #8f8f8f;
+    font-size: .32rem;color: #333333;
+    .p2{
+      color: #666666;
+      font-size: .26rem;
+    }
     .div{
       color: #fff;
       background: $base;
-      width: 1.5rem;
-      margin:auto;
+      width: 3.36rem;
+      height: .7rem;
+      line-height: .7rem;
+      border-radius: 5px;
+      margin:.2rem auto;
+      margin-bottom: 0;
     }
   }
   #home-nav{
     width: 100%;
     overflow: scroll;
-    height: 1.5rem;
+    height: 2.5rem;
     z-index: 5;
+    margin-top: .4rem;
     #home-nav-scroll{
-      width: 12rem;
       height: 100%;
+      background: initial;
+      padding-right: .4rem;
     }
     div{
-      width: 2rem;
       float: left;
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-left: .3rem;
+      width: 2.8rem;
+      // border-radius: 5px;
+      overflow: hidden;
+      height: 2.3rem;
+      position: relative;
+      box-shadow: 0px 3px 8px #8f8f8f;
+      span{
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        display: inline-block;
+        height: .5rem;
+        line-height: .5rem;
+        color: #fff;
+        font-size: .32rem;
+        background: #323232;
+        opacity: .7;
+      }
     }
     img{
-      width: 1rem;
+      width: 100%;
+      height: 100%;
+    }
+  }
+  .btmtext{
+    position: fixed;
+    width: 100%;
+    left: 0;bottom: .1rem;
+    text-align: left;
+    padding-left: .3rem;
+    span{
+      color: #5e5e5e;font-size: .28rem;
+    }
+    p{
+      color: #666666;font-size: .22rem;
     }
   }
 }

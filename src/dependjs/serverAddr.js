@@ -7,9 +7,11 @@
 })();*/
 
 let cons = {
-  http:"http://192.168.1.41:3000",
+  http:"http://192.168.1.38:3000",
+  // http:"https://legal.bluewhale-inc.com",
   socket:"http://192.168.1.38:4000/legal/",
-  wxmpServer:"http://test.pay.fali-inc.com"
+  // wxmpServer:"https://wechat.fali-inc.com"
+  wxmpServer:"https://test.pay.fali-inc.com"
 
 }
 let _env ;

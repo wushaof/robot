@@ -3,30 +3,92 @@
       <section class='chatroom'>
         <header class='header'>
           <i @click='goBack' class='iconfont icon-fanhui'></i>
-          <span>小嗨智能法律机器人</span>
+          <span>{{title}}</span>
         </header>
-        <div id="scroll">
+        <div class="Coverlayer" v-if='popupShow' @click='close'>
+        </div>
+        <div :class='["texbox",popupShow?"text_fixed":""]'>
+          <i class='iconfont icon-chahao' @click='close'></i>
+          <textarea class='texbox_text' v-model='textvalue' placeholder="请用一句话描述您的问题">
+          </textarea>
+          <div>
+            <div class="emit_" :class="{'btncolor':colorTrue}" @click='emitMes'>
+              发送
+            </div>
+          </div>
+        </div>
+        <div id="scroll" class='ipnonexpb4'>
 
-          <div class="child">
-
-            <section :class="[item.msg_type==1?'chatleft':'chatright']" v-for='item in chatList'>
-                <img :src="item.user_head">
-                <div class="chatwith">
-                    <span>{{item.user_name}}</span>
-                    <p class="chatcon"><span>{{item.content}}</span></p>
+          <div class="child ipnonexpb200">
+            <div class="" v-for='(item,index) in chatList'>
+              <section class="chatleft" v-if='item.role==1||item.role ==3'>
+                <!-- <img :src="item.user_head"> -->
+                <div class="chatwith" :ref="['q'+'_'+index]">
+                  <!-- <span>{{item.user_name}}</span> -->
+                  <p :class="['chatcon',{'dataonehidden':item.ifUnfold}]">
+                    <span v-html='item.content'></span>
+                    <i class='' v-if='item.Unfold' @click='clickEmUnfold(item)'>
+                      <i class='i bgi' v-if='item.ifUnfold'>展开</i>
+                      <i v-else class='i emUnfold'>收起</i>
+                    </i>
+                  </p>
                 </div>
+              </section>
+              <section class="chatright" v-else-if='item.role==0'>
+                <!-- <img :src="item.user_head"> -->
+                <div class="chatwith">
+                  <!-- <span>{{item.user_name}}</span> -->
+                  <p class="chatcon"><span v-html='item.content'></span></p>
+                </div>
+              </section>
+
+              <article class='hiLawyer' v-if='item.data_type==2'>
+                <section v-for='(list,idx) in item.content'>
+                  <div @click='clickUnfold(list,index)'>
+                    <i class='iconfont icon-jinlingyingcaiwangtubiao36'></i>
+                    <span v-html='list.title' :class='["ellipsis"+index]'></span>
+                    <b v-show='list.wrap'>
+                      <em v-if='list.isUnfold'>收起</em>
+                      <em v-else>展开</em>
+                    </b>
+                  </div>
+                  <article class='article'>
+                    <p :class='[{"lineClamp":list.isUnfold}]'
+                      :ref="['q'+'_'+index+'_'+idx]"
+                      v-html='list.substance'
+                      >
+                    </p>
+                  </article>
+                </section>
+              </article>
+            </div>
+
+            <section class="chatleft" v-if='dotShow'>
+              <!-- <img :src="item.user_head"> -->
+              <div class="chatwith">
+                <!-- <span>{{item.user_name}}</span> -->
+                <p class="chatcon"><span class='dot'></span></p>
+              </div>
             </section>
 
           </div>
 
         </div>
 
-        <article id='clickdiv' class="article" @click="openKeyboard">
+        <article v-if='readonly' id='clickdiv' class="article_chat" @click="openKeyboard">
           <div class="">
-            <input type="text" @focus='focus' @blur='blur' class='text'
+            <input type="text" @blur='blur' class='text'
+              placeholder="请用一句话描述您的问题"
                v-model='textvalue'>
           </div>
           <span :class="{'btncolor':colorTrue}" @click='emitMes'>发送</span>
+        </article>
+        <article v-else id='clickdiv' class="article_chat xfooter ipnone_box_shadow" @click="openPopup">
+          <div class="">
+            <input type="text" readonly='readonly' class='text'
+              placeholder="请用一句话描述您的问题">
+          </div>
+          <span>发送</span>
         </article>
       </section>
 
@@ -43,22 +105,29 @@
         colorTrue:false,
         topTrue:false,
         timer:null,
-        chatList:[
-          {
-            msg_type:1,
-            content:'请问你想咨询什么',
-            user_head:"http://192.168.1.38:3000/public/images/smart_robert.jpg",
-            user_name:'小嗨智能律师'
-          },{
-            msg_type:2,
-            content:'律师，您好',
-            user_head:"http://192.168.1.38:3000/public/images/smart_robert.jpg",
-            user_name:'王大锤'
-          }
-        ]  //聊天信息列表
+        idObj:{},
+        title:'',
+        loadMore:false,
+        noData:false,
+        num:0,
+        readonly:false,
+        popupShow:false,
+        dotShow:false,
+        chatList:[]  //聊天信息列表
       }
     },
     watch:{
+      $route(to){
+        var path=to.path.split('/')[1];
+        if(path == 'chat'){
+          document.title='智能咨询';
+          this.loadMore=false
+          this.noData=false
+          this.num=0
+          this.chatList=[]
+          this.getData()
+        };
+      },
       textvalue(res){
         var len=res.length;
         if(len!=0&&res[0]!=' '){
@@ -69,32 +138,151 @@
       }
     },
     mounted(){
-      var HomeScroll = this.Scroll;
+      document.title='智能咨询';
+      var HomeScroll = this.Scroll,that=this;
 			this.Ios.isIos.isMobile(this);
+      this.isAndroid?this.readonly=true:this.readonly=false;
 			this.HomeSC = new HomeScroll('#scroll', {
 				mouseWheel: true, click: this.isAndroid, tap: this.isIos,
 				scrollX: false,
 				fadeScrollbars: false
 			});
-      setTimeout(()=>{
-        this.HomeSC.refresh()
-      },0);
       this.HomeSC.on('scrollStart', function () {
         var text=document.querySelector('.text');
         if(text){
           text.blur()
         }
       });
+      this.idObj.uid=localStorage.getItem('uid_company');
+      this.idObj.compid=localStorage.getItem('compid_');
+      this.getData();
       this.changeWindow();
+      this.HomeSC.on('scrollEnd',function(){
+        if(that.noData){
+          return;
+        }
+        if(this.y>=-50){
+          that.loadMore=true;
+          that.getData();
+        }
+      });
     },
     methods:{
-      focus(){
+      close(){
+        this.popupShow=false;
+      },
+      clickUnfold(item,index){
+        item.isUnfold=!item.isUnfold;
+        setTimeout(() => {
+            this.HomeSC.refresh()
+        }, 0);
+      },
+      openPopup(){
+        var text=document.querySelector('.texbox_text');
+        console.log(text);
+        this.popupShow=true;
+        text.focus();
+      },
+      textFocus(){
         if(this.isIos){
           this.timer=setInterval(()=>{  //兼容ios
             document.body.scrollTop=document.body.scrollHeight;
           },100);
         }
+      },
+      clickEmUnfold(item){
+        item.ifUnfold=!item.ifUnfold;
+        setTimeout(() => {
+            this.HomeSC.refresh()
+        }, 0);
+      },
+      getData(){
+        var that=this;
+        var data={
+          uid:this.idObj.uid,
+          compid:this.idObj.compid,
+          num:this.num
+        }
+        this.ajax({
+            url: `${this.api}/company/wxmp/messagerecord`,
+            type: "POST",
+            data: data,
+            dataType: "json",
+            success: function (res) {
+                if (res.code == 0) {
+                  var arr=res.msg.record;
+                  if(arr.length==0){
+                    that.noData=true;
+                    return;
+                  }
+                  that.title=res.msg.name;
+                  that.num=res.msg.num;
 
+                  if(that.loadMore){  //加载更多
+                    that.chatList=arr.concat(that.chatList);
+                    that.loadMore=false;
+                    setTimeout(() => {
+                        that.HomeSC.refresh()
+                    }, 0);
+                  }else{
+                    var contTrue=true;
+                    arr.forEach((rpt)=>{
+                      if(rpt.data_type==2){
+                        rpt.content.forEach((cont)=>{
+                          if(typeof cont.isUnfold=='undefined'){
+                            if(contTrue){
+                              that.$set(cont,'isUnfold',true);
+                              contTrue=false;
+                            }else{
+                              that.$set(cont,'isUnfold',false);
+                            }
+                          };
+                        })
+                      };
+                    })
+                    that.chatList=arr;
+                    setTimeout(() => {
+                        that.HomeSC.scrollTo(0, -2000000000);
+                        that.HomeSC.refresh()
+                    }, 0);
+                  }
+                  that.nextTick();
+                }
+            },
+            fail: function (status) {
+
+            }
+        })
+      },
+      nextTick(){
+        this.$nextTick(()=>{
+          this.chatList.forEach((res,index)=>{
+            if(res.role==1 || res.role == 3){
+              var q='q'+'_'+index;
+              var q1=this.$refs[q][0].offsetHeight;
+              if(typeof res.ifUnfold=='undefined'){
+                if(q1>170){
+                  this.$set(res,'ifUnfold',true);
+                  this.$set(res,'Unfold',true);
+                }else{
+                  this.$set(res,'ifUnfold',false)
+                }
+              }
+            }else if(res.data_type==2){
+              res.content.forEach((rpt,idx)=>{
+                var q='q'+'_'+index+'_'+idx;
+                var q1=this.$refs[q][0].scrollHeight;
+                if(typeof rpt.wrap=='undefined'){
+                  if(q1>57){
+                    this.$set(rpt,'wrap',true)
+                  }else{
+                    this.$set(rpt,'wrap',false)
+                  }
+                }
+              })
+            }
+          })
+        })
       },
       blur(){
         clearInterval(this.timer)
@@ -109,29 +297,78 @@
         }
       },
       emitMes(){  //发送
+        if(this.textvalue==''){
+          return;
+        }
         if(this.textvalue[0]==' '){
           Toast('抱歉，第一个字符不能为空')
         }
         if(this.textvalue.length==0 || this.textvalue[0]==' '){
           return;
         }
-        var text=document.querySelector('.text');
-        var msg={
 
-        }
         this.chatList.push({
-          msg_type:2,
-          content:this.textvalue,
-          user_head:"http://192.168.1.38:3000/public/images/smart_robert.jpg",
-          user_name:'王大锤'
-        });
-        this.textvalue='';
-        text.focus();
-        this.HomeSC.scrollTo(0, -200000);
-        setTimeout(() => {
-            this.HomeSC.refresh()
-          }, 0);
-        // that.getMsg(msg);
+          role:0,
+          content:this.textvalue
+        })
+        this.dotShow=true;
+        setTimeout(()=>{
+          that.HomeSC.scrollTo(0, -200000000);
+          this.HomeSC.refresh()
+        },0)
+        this.popupShow=false;
+        var text=document.querySelector('.text');
+        var that=this;
+        var data={
+          uid:this.idObj.uid,
+          compid:this.idObj.compid,
+          type:2,
+          content:this.textvalue
+        }
+        that.textvalue='';
+        this.ajax({
+            url: `${this.api}/company/wxmp/smartConv`,
+            type: "POST",
+            data: data,
+            dataType: "json",
+            success: function (res) {
+                if (res.code == 0) {
+                  var arr=res.msg.record;
+                  that.dotShow=false;
+                  arr.forEach((rpt,idx)=>{
+                    if(typeof rpt.wrap=='undefined'){
+                      that.$set(rpt,'wrap',true);
+                    };
+                    if(rpt.role==0){
+                      arr.splice(idx,1)
+                    }
+                    if(rpt.data_type==2){
+                      rpt.content.forEach((cont)=>{
+                        if(typeof cont.isUnfold=='undefined'){
+                          that.$set(cont,'isUnfold',true);
+                        };
+                      })
+                    };
+                  })
+                  that.num++;
+                  that.chatList=that.chatList.concat(arr);
+                  setTimeout(() => {
+                    that.HomeSC.scrollTo(0, -200000000);
+                    that.HomeSC.refresh()
+                  }, 0);
+                  // setTimeout(()=>{
+                  //   that.nextTick();
+                  //   that.HomeSC.scrollTo(0, -200000000);
+                  // },2000);
+                  setTimeout(()=>{
+                    that.HomeSC.refresh()
+                  },2000)
+                }
+            },
+            fail: function (status) {
+
+            }
+        })
       },
       getMsg(msg){
 
@@ -148,23 +385,169 @@
 @import '../assets/common';
 @import '../assets/unit';
 @import '../assets/znsc';
+.Coverlayer{
+  z-index: 99;position:fixed;
+  height:100vh;width:100vw;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.iosPopup{
+  z-index: 1000;
+  background: #fff;
+  position: fixed;
+  top: .5rem;
+  width: 96%;
+  left: 2%;
+  height: 5rem;
+  border-radius: 5px;
+}
 #chat{
   top:0!important;
-}
-
-.text{
-  box-sizing: border-box;
-  width:100%;
-  height:.72rem;
-  font-size: .32rem;
-  z-index: 999
+  .dot{
+    top:15px;
+    margin: 0 6px;
+    display: inline-block; width: 10px;
+    min-height: 2px;
+    padding-right: 2px;
+    padding-left:2px;
+    border-left: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    background-color: currentColor;
+    background-clip: content-box;
+    box-sizing: border-box;
+    animation: dot 1s infinite step-start both;
+    *zoom: expression(this.innerHTML = '...');  /* IE7 */
+  }
+  .dot:after { content: '...'; } /* IE8 */
+  .dot::after { content: ''; }
+  @keyframes dot {
+      25% { border-color: transparent; background-color: transparent; }          /* 0个点 */
+      50% { border-right-color: transparent; background-color: transparent; }    /* 1个点 */
+      75% { border-right-color: transparent; }                                   /* 2个点 */
+  }
+  .hiLawyer{
+    padding: 0rem .3rem 0;
+    margin-bottom: 2px;
+    section{
+      margin-bottom: .2rem;
+    }
+    b{
+      font-weight: normal;
+    }
+    div{
+      background: rgb(226,226,226);
+      font-size: .24rem;color: #333;
+      border-top-left-radius: 16px;
+      padding: .15rem .3rem;
+      border-top-right-radius: 16px;
+      padding-left: .6rem;position: relative;
+      i{
+        color: #fd6e3f;font-size: .4rem;
+        margin-top: -.1rem;float: left;
+        margin-left: -.4rem;
+      }
+      em{
+        position: absolute;color: #fd6e3f;
+        right: .2rem;top: .15rem;
+      }
+      span{
+        overflow: hidden;
+        width: 89%;
+        margin-left: .1rem;
+        display: -webkit-box;
+        -webkit-line-clamp:1;
+        -webkit-box-orient:vertical;
+      }
+      .ellipsisSpan{
+        -webkit-line-clamp: initial;
+      }
+    }
+    .article{
+      padding: .2rem;
+      box-shadow: 0 1px 2px rgb(221,221,221);
+      font-size: 13px;
+      background: rgb(245,245,245);
+      border-bottom-left-radius: 16px;
+      border-bottom-right-radius: 16px;
+      .answespan,.quizspan{
+        font-size: .3rem;
+        color: #fd6e3f;
+        margin-left: -.1rem;
+      }
+      .quizp{
+        margin-bottom: .1rem;
+      }
+    }
+    p{
+      overflow:hidden;
+      display: -webkit-box;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+    }
+    .lineClamp{
+      -webkit-line-clamp:initial;
+    }
+  }
+  .emit_{
+    box-sizing: border-box;
+    font-size: .3rem;
+    line-height: 36px;
+    height: 36px;
+    background: #DDDDDD;
+    color: #ffffff;
+    width: 17%;
+    border-radius: 5px;
+    text-align: center;
+    float: right;
+    margin-right: 10px;
+    margin-top: 6px;
+  }
+  .btncolor {
+    background: $base!important;
+    color:#fff!important;
+  }
+  .texbox{
+    background: #fff;
+    border-radius: 5px;
+    height: 225px;
+    box-sizing: border-box;
+    width: 96%;
+    text-align: center;
+    margin-left: 2%;
+    position: fixed;
+    z-index: 1000;
+    margin-top: -20px;
+    top: -230px;
+  }
+  .text_fixed{
+    top:40px;
+  }
+  .texbox_text{
+    resize: none;
+    width: 93%;
+    height: 150px;
+    margin-top: 15px;
+    border: 0;
+    font-size: 14px;
+    border-bottom: 1px solid #eeeeee;
+  }
+  .icon-chahao{
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 14px;
+  }
+  .emit{
+    position: absolute;
+    right: 20px;
+    bottom: 0;
+  }
 }
 .child{
   padding-top:.2rem;
-  padding-bottom:1rem
+  padding-bottom:1.5rem
 }
 
-.article {
+.article_chat {
       @extend %flexbox;
       @extend %flex-ali-ce;
       z-index: 99;
@@ -176,17 +559,27 @@
       padding: .2rem .2rem .2rem;
       box-sizing: border-box;
       margin-bottom: 0 !important;
-      background: #f1f1f1;
+      background: #f4f4f4;
       div{
         background:#fff;
         width:83%;
-        border-top-left-radius:5px;
-        border-bottom-left-radius:5px;
-        text-indent: .2rem;
+        border: 1px solid #eeeeee;
+        border-radius: 5px;
+        margin-right: 8px;
         span{
           background:#fff;
           color:#888
         }
+      }
+      .text{
+        box-sizing: border-box;
+        width:100%;
+        height:.72rem;
+        font-size: .3rem;
+        z-index: 999;
+        padding-left: 5px;
+        line-height: .72rem;
+        border-radius: 5px;
       }
       span {
           box-sizing: border-box;
@@ -196,13 +589,12 @@
           background: #DDDDDD;
           color: #ffffff;
           width: 17%;
-          border-top-right-radius: 4px;
-          border-bottom-right-radius: 4px;
+          border-radius: 5px;
           text-align: center;
       }
       .btncolor {
-        background: #27aff5;
-        color:#fff;
+        background: $base!important;
+        color:#fff!important;
       }
   }
 .home{
@@ -256,8 +648,15 @@
     section {
         background: $backgroundw
     }
-    font-size: .3rem;
-    padding: .14rem .18rem .14rem;
+    .dataonehidden {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 8;
+      -webkit-box-orient: vertical;
+      padding-bottom: .08rem;
+    }
+    font-size: 13px;
+    padding: 7px 9px 7px;
     @extend %flexbox;
     @extend %flex-r;
     img {
@@ -267,40 +666,41 @@
     }
     .chatwith {
         max-width:75%;
-        margin-top:-.1rem;
+        margin-top:-5px;
         background: #fff;
         > span {
-            font-size: .22rem;
+            font-size: 11px;
             color: #888;
-            margin-left: .18rem;
+            margin-left: 9px;
         }
     }
     .chatcon {
-        padding: .14rem;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background: $backgroundw;
-        position: relative;
-        margin-left: .2rem;
-    }
-
-    .chatcon:before {
-        content: '';
-        border-color: transparent #ddd transparent transparent;
-        border-width: 6px 7px 6px 5px;
-        border-style: solid;
+      padding: 9px 10px;
+      // padding-bottom: 5px;
+      border-bottom-right-radius: 18px;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      color: #333;
+      background: #f4f4f4;
+      // box-shadow: 0 2px 3px #dddddd;
+      margin-left: 10px;
+      position: relative;
+      .bgi{
+        bottom: 0px;
+        width: 9rem;
+        text-align: right;
+        padding-right: 15px;
+        background: -webkit-linear-gradient(left, rgba(244, 244, 244, 0) 26%, rgba(244, 244, 244, 0.8), #f4f4f4 85%);
+      }
+      .i{
+        color: #fd6e3f;
         position: absolute;
-        top: 11px;
-        left: -13px;
-    }
-    .chatcon:after {
-        content: " ";
-        border-width: 5px 7px 5px 4px;
-        border-color: transparent #fff transparent transparent;
-        border-style: solid;
-        position: absolute;
-        top: 12px;
-        left: -11px;
+        right: -.01rem;
+        display: inline-block;
+      }
+      .emUnfold{
+        width: 40px;
+      }
     }
 
     .chatconin {
@@ -317,8 +717,8 @@
     }
 }
 .chatright {
-          font-size: .3rem;
-          padding: .14rem .18rem .14rem;
+          font-size: 13px;
+          padding: 7px 9px 7px;
           @extend %flexbox;
           @extend %flex-rr;
           img {
@@ -334,36 +734,20 @@
               max-width:75%;
               background: #fff;
               > span {
-                  font-size: .22rem;
+                  font-size: 11px;
                   color: #888;
-                  margin-right: .25rem;
+                  margin-right: 12px;
               }
           }
           .chatcon {
-              padding: .14rem;
-              border: 1px solid #7fdb5e;
-              border-radius: 5px;
-              background: #9fe75a;
-              position: relative;
-              margin-right: .25rem;
-          }
-          .chatcon:before {
-              content: '';
-              border-color: transparent transparent transparent #7fdb5e;
-              border-width: 6px 5px 6px 7px;
-              border-style: solid;
-              position: absolute;
-              top: 11px;
-              right: -13px;
-          }
-          .chatcon:after {
-              content: " ";
-              border-width: 5px 4px 5px 7px;
-              border-color: transparent transparent transparent #9fe75a;
-              border-style: solid;
-              position: absolute;
-              top: 12px;
-              right: -11px;
+            padding: 9px 10px;
+            border-bottom-left-radius: 18px;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            color: #fff;
+            background: #fd6e3f;
+            // box-shadow: 0 1px 2px #f4d3c8;
+            margin-right: 10px;
           }
       }
 /*.home{

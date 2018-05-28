@@ -56,6 +56,38 @@ export default {
 
 </script>
 <style lang='scss'>
+@media only screen and (device-width: 375px) and (device-height: 812px) and
+(-webkit-device-pixel-ratio: 3) {
+  .xbodybottom {
+    height: 100%;box-sizing: border-box;
+    &:after {
+      content: '';z-index: 100000;position: fixed;
+      left: 0;bottom: 0;width: 100%;height: 36px;
+      background: #fff!important;
+    }
+  }
+  .xfooter{
+    bottom: 36px!important;
+  }
+  .xfooter-resg{
+    bottom:76px!important;
+  }
+  .ipnonexpb{
+    padding-bottom: 100px!important;
+  }
+  .ipnonexpb200{
+    padding-bottom: 100px!important;
+  }
+  .ipnonexpb4{
+    padding-bottom: 50px!important;
+  }
+  .ipnone_box_shadow{
+    box-shadow: 63px 62px 60px 60px #fff
+  }
+  .xborder{
+    /*border-bottom: 1px solid #EEEEEE;*/
+  }
+}
 $base:#2d74ff;
 .footer_icon{
   .end_btn{
