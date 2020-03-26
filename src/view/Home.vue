@@ -58,7 +58,7 @@ export default {
   	// 	scrollY: false,
     //   disableMouse: true,
     //   disablePointer: true
-    // });
+    // });测试代码
     this.checkOpenid();
   },
   watch:{
