@@ -59,6 +59,7 @@ export default {
     //   disableMouse: true,
     //   disablePointer: true
     // });测试代码
+    //test分支
     this.checkOpenid();
   },
   watch:{
