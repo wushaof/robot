@@ -60,6 +60,7 @@ export default {
     //   disablePointer: true
     // });测试代码
     //test分支
+    //增加一个
     this.checkOpenid();
   },
   watch:{
